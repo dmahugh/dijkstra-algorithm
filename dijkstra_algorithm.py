@@ -24,7 +24,7 @@ class Graph:
                 edge_from, edge_to, cost, *_ = line.strip().split(" ")
                 self.edges.append(Edge(edge_from, edge_to, float(cost)))
 
-        self.nodes = set()  # the set of all nodes in the graph
+        self.nodes = set()  # the set of all unique nodes in the graph
         for edge in self.edges:
             self.nodes.update([edge.start, edge.end])
 
@@ -66,12 +66,12 @@ class Graph:
 
             # For each neighbor of current_node, check whether the total distance
             # to the neighbor via current_node is shorter than the distance we
-            # currently have for that node. If it is, update the neighbor's entries
-            # in distance_from_start and previous_node.
+            # currently have for that node. If it is, update the neighbor's values
+            # for distance_from_start and previous_node.
             for neighbor, distance in self.neighbors[current_node]:
-                alternative_route = distance_from_start[current_node] + distance
-                if alternative_route < distance_from_start[neighbor]:
-                    distance_from_start[neighbor] = alternative_route
+                new_path = distance_from_start[current_node] + distance
+                if new_path < distance_from_start[neighbor]:
+                    distance_from_start[neighbor] = new_path
                     previous_node[neighbor] = current_node
 
         # To build the path to be returned, we iterate through the nodes from
@@ -83,22 +83,40 @@ class Graph:
             path.appendleft(current_node)
             current_node = previous_node[current_node]
         path.appendleft(start_node)
+
         return path
 
 
 def main():
     """test the implementation
     """
-    for filename, start, end in [
-        ("testcase1.graph", "A", "G"),
-        ("testcase2.graph", "Renton", "Redmond"),
-        ("testcase2.graph", "Seattle", "Redmond"),
-        ("testcase2.graph", "Eastlake", "Issaquah"),
+    for filename, start, end, expected in [
+        ("simple_graph.txt", "A", "G", ["A", "D", "E", "G"]),
+        (
+            "seattle_area.txt",
+            "Renton",
+            "Redmond",
+            ["Renton", "Factoria", "Bellevue", "Northup", "Redmond"],
+        ),
+        (
+            "seattle_area.txt",
+            "Seattle",
+            "Redmond",
+            ["Seattle", "Eastlake", "Northup", "Redmond"],
+        ),
+        (
+            "seattle_area.txt",
+            "Eastlake",
+            "Issaquah",
+            ["Eastlake", "Seattle", "SoDo", "Factoria", "Issaquah"],
+        ),
     ]:
         graph = Graph(filename)
+        solution = graph.shortest_path(start, end)
+        assert list(solution) == expected
         print(
             "{0} - shortest path from {1} to {2}:".format(filename, start, end),
-            "-".join(graph.shortest_path(start, end)),
+            "-".join(solution),
         )
 
 
