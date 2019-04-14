@@ -10,8 +10,7 @@ Edge = namedtuple("Edge", "start, end, distance")
 
 class Graph:
     def __init__(self, filename):
-        """Reads a graph definition file and stores it in the
-        edges/nodes/neighbors properties.
+        """Reads graph definition and stores it in edges/nodes/neighbors properties.
 
         Each line of the graph definition file defines an edge by specifying
         the start node, end node, and distance, delimited by spaces.
