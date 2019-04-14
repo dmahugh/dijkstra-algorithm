@@ -124,7 +124,12 @@ def main():
 
 
 def verify_algorithm(filename, start, end, path, distance):
-    """Run Graph.shortest_path on test data, verify returned results.
+    """Helper function to run simple tests and print results to console.
+
+    filename = graph definition file
+    start/end = path to be calculated
+    path = expected shorted path
+    distance = expected distance of path
     """
     graph = Graph(filename)
     returned_path, returned_distance = graph.shortest_path(start, end)
