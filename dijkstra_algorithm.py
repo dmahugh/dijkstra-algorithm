@@ -1,45 +1,48 @@
-"""Python 3 implementation of the Djikstra algorithm for finding the shortest
+"""Python 3 implementation of Djikstra's algorithm for finding the shortest
 path between nodes in a graph.
 """
-from collections import deque, namedtuple
+from collections import deque
 
 INFINITY = float("inf")
-
-Edge = namedtuple("Edge", "start, end, distance")
 
 
 class Graph:
     def __init__(self, filename):
-        """Reads graph definition and stores it in edges/nodes/neighbors properties.
+        """Reads graph definition and stores it. Each line of the graph
+        definition file defines an edge by specifying the start node,
+        end node, and distance, delimited by spaces.
 
-        Each line of the graph definition file defines an edge by specifying
-        the start node, end node, and distance, delimited by spaces.
+        Stores the graph definition in two properties which are used by
+        Dijkstra's algorithm in the shortest_path method:
+        self.nodes = set of all unique nodes in the graph
+        self.adjacency_list = dict that maps each node to an unordered set of
+        (neighbor, distance) tuples.
         """
 
-        # Read the graph definition file and store in self.edges.
-        self.edges = []
+        # Read the graph definition file and store in graph_edges as a list of
+        # lists of [from_node, to_node, distance]. This data structure is not
+        # used by Dijkstra's algorithm, it's just an intermediate step in the
+        # create of self.nodes and self.adjacency_list.
+        graph_edges = []
         with open(filename) as fhandle:
             for line in fhandle:
                 edge_from, edge_to, cost, *_ = line.strip().split(" ")
-                self.edges.append(Edge(edge_from, edge_to, float(cost)))
+                graph_edges.append((edge_from, edge_to, float(cost)))
 
-        self.nodes = set()  # the set of all unique nodes in the graph
-        for edge in self.edges:
-            self.nodes.update([edge.start, edge.end])
+        self.nodes = set()
+        for edge in graph_edges:
+            self.nodes.update([edge[0], edge[1]])
 
-        # The self.neighbors dict contains a set of (neighbor, distance) tuples
-        # for each node.
-        self.neighbors = {node: set() for node in self.nodes}
-        for edge in self.edges:
-            self.neighbors[edge.start].add((edge.end, edge.distance))
+        self.adjacency_list = {node: set() for node in self.nodes}
+        for edge in graph_edges:
+            self.adjacency_list[edge[0]].add((edge[1], edge[2]))
 
     def shortest_path(self, start_node, end_node):
-        """Returns the shortest path from start_node to end_node.
+        """Uses Dijkstra's algorithm to determine the shortest path from
+        start_node to end_node. Returns (path, distance).
         """
 
-        # Initialize the list of unvisited nodes. Each time we visit a node, we
-        # will remove it from this list.
-        unvisited_nodes = self.nodes.copy()
+        unvisited_nodes = self.nodes.copy()  # All nodes are initially unvisited.
 
         # Create a dictionary of each node's distance from start_node. We will
         # update each node's distance whenever we find a shorter path.
@@ -52,7 +55,8 @@ class Graph:
         previous_node = {node: None for node in self.nodes}
 
         while unvisited_nodes:
-            # set current_node to the unvisited node with smallest distance
+            # Set current_node to the unvisited node with shortest distance
+            # calculated so far.
             current_node = min(
                 unvisited_nodes, key=lambda node: distance_from_start[node]
             )
@@ -67,7 +71,7 @@ class Graph:
             # to the neighbor via current_node is shorter than the distance we
             # currently have for that node. If it is, update the neighbor's values
             # for distance_from_start and previous_node.
-            for neighbor, distance in self.neighbors[current_node]:
+            for neighbor, distance in self.adjacency_list[current_node]:
                 new_path = distance_from_start[current_node] + distance
                 if new_path < distance_from_start[neighbor]:
                     distance_from_start[neighbor] = new_path
@@ -83,40 +87,54 @@ class Graph:
             current_node = previous_node[current_node]
         path.appendleft(start_node)
 
-        return path
+        return path, distance_from_start[end_node]
 
 
 def main():
-    """test the implementation
+    """Runs a few simple tests to verify the implementation.
     """
-    for filename, start, end, expected in [
-        ("simple_graph.txt", "A", "G", ["A", "D", "E", "G"]),
-        (
-            "seattle_area.txt",
-            "Renton",
-            "Redmond",
-            ["Renton", "Factoria", "Bellevue", "Northup", "Redmond"],
-        ),
-        (
-            "seattle_area.txt",
-            "Seattle",
-            "Redmond",
-            ["Seattle", "Eastlake", "Northup", "Redmond"],
-        ),
-        (
-            "seattle_area.txt",
-            "Eastlake",
-            "Issaquah",
-            ["Eastlake", "Seattle", "SoDo", "Factoria", "Issaquah"],
-        ),
-    ]:
-        graph = Graph(filename)
-        solution = graph.shortest_path(start, end)
-        assert list(solution) == expected
-        print(
-            "{0} - shortest path from {1} to {2}:".format(filename, start, end),
-            "-".join(solution),
-        )
+    verify_algorithm(
+        filename="simple_graph.txt",
+        start="A",
+        end="G",
+        path=["A", "D", "E", "G"],
+        distance=11,
+    )
+    verify_algorithm(
+        filename="seattle_area.txt",
+        start="Renton",
+        end="Redmond",
+        path=["Renton", "Factoria", "Bellevue", "Northup", "Redmond"],
+        distance=16,
+    )
+    verify_algorithm(
+        filename="seattle_area.txt",
+        start="Seattle",
+        end="Redmond",
+        path=["Seattle", "Eastlake", "Northup", "Redmond"],
+        distance=15,
+    )
+    verify_algorithm(
+        filename="seattle_area.txt",
+        start="Eastlake",
+        end="Issaquah",
+        path=["Eastlake", "Seattle", "SoDo", "Factoria", "Issaquah"],
+        distance=21,
+    )
+
+
+def verify_algorithm(filename, start, end, path, distance):
+    """Run Graph.shortest_path on test data, verify returned results.
+    """
+    graph = Graph(filename)
+    returned_path, returned_distance = graph.shortest_path(start, end)
+    assert list(returned_path) == path
+    assert returned_distance == distance
+    print(
+        "{0} - shortest path from {1} to {2}:".format(filename, start, end),
+        "-".join(path),
+        "(distance: {0})".format(distance),
+    )
 
 
 if __name__ == "__main__":
