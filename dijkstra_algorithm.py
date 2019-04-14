@@ -137,13 +137,14 @@ def verify_algorithm(filename, start, end, path, distance):
     """
     graph = Graph(filename)
     returned_path, returned_distance = graph.shortest_path(start, end)
+
     assert list(returned_path) == path
     assert returned_distance == distance
-    print(
-        "{0} - shortest path from {1} to {2}:".format(filename, start, end),
-        "-".join(path),
-        "(distance: {0})".format(distance),
-    )
+
+    print('\ngraph definition file: {0}'.format(filename))
+    print('      start/end nodes: {0} -> {1}'.format(start, end))
+    print('        shortest path: {0}'.format(path))
+    print('       total distance: {0}'.format(distance))
 
 
 if __name__ == "__main__":
