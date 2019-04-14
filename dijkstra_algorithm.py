@@ -78,6 +78,9 @@ class Graph:
                     distance_from_start[neighbor] = new_path
                     previous_node[neighbor] = current_node
 
+            if current_node == end_node:
+                break # we've visited the destination node, so we're done
+
         # To build the path to be returned, we iterate through the nodes from
         # end_node back to start_node. Note the use of a deque, which can
         # appendleft with O(1) performance.
