@@ -1,5 +1,6 @@
 """Python 3 implementation of Djikstra's algorithm for finding the shortest
-path between nodes in a graph.
+path between nodes in a graph. Written as a learning exercise, so lots of
+comments and no error handling.
 """
 from collections import deque
 
